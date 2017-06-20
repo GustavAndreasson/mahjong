@@ -138,42 +138,42 @@ a {
     margin-bottom: 5px;
 }
 
-#options .settings {
+.settings {
     padding: 0px;
     overflow: hidden;
 }
 
-#options .settings .setting {
+.settings .setting {
     padding: 5px 0px;
     overflow: hidden;
 }
 
-#options .settings .setting .opt_title {
+.settings .setting .opt_title {
     float: left;
     display: block;
     width: 40%;
 }
 
-#options .settings .setting .opt_options {
+.settings .setting .opt_options {
     float: right;
     display: block;
     width: 60%;
     text-align: right;
 }
 
-#options .settings .setting .opt_options input[type=radio] + label {
+.settings .setting .opt_options input[type=radio] + label {
     margin-bottom: 5px;
     margin-left: 5px;
 }
 
-#options .settings .setting .opt_options input[type=number]{
+.settings .setting .opt_options input[type=number]{
     width: 50px;
     font-size: 16px;
     text-align: right;
     margin-left: 5px;
 }
 
-#options .calculatorlink {
+.calculatorlink {
     float: left;
     margin-top:20px
 }
@@ -187,33 +187,42 @@ a {
     width: 70px;
 }
 
-#options #custom {
+#custom {
     width: 300px;
     margin-left: -150px;
     margin-top: -100px;
     z-index: 20;
 }
 
-#options #custom .settings .setting .opt_options input[type=radio] + label {
+#custom .settings .setting .opt_options input[type=radio] + label {
     font-weight: bold;
 }
 
-#options #custom .confirm {
+#custom .confirm {
     margin-top: 0px;
 }
 
-#options #custom .confirm button {
+#custom .confirm button {
     width: auto;
 }
 
-#options #saveload {
+#saveload {
     width: 450px;
     margin-left: -225px;
     margin-top: -78px;
+    text-align: left;
     z-index: 20;
 }
 
-#options #saveload .select {
+#saveload .confirm {
+    margin-top: 0px;
+}
+
+#saveload .confirm button {
+    width: auto;
+}
+
+.select {
     box-sizing: border-box;
     width: 100%;
     height: 122px;
@@ -222,31 +231,23 @@ a {
     overflow-y: auto;
 }
 
-#options #saveload .select .option {
+.select .option {
     padding: 3px;
     font-size: 12px;
     cursor: default;
     overflow: hidden;
 }
 
-#options #saveload .select .option.disabled {
+.select .option.disabled {
     color: #a0a0a0;
 }
 
-#options #saveload .select .option.selected {
+.select .option.selected {
     background-color: #dddddd;
 }
 
-#options #saveload .select .option .save_date {
+.select .option .save_date {
     float: right;
-}
-
-#options #saveload .confirm {
-    margin-top: 0px;
-}
-
-#options #saveload .confirm button {
-    width: auto;
 }
 
 #login, #register {
@@ -496,6 +497,10 @@ a {
 	font-weight: bold;
 	display: inline;
     }
+
+    .header button#btn_saveload {
+	margin-left: 30px;
+    }
     
     .mjtable div.head {
 	position: fixed;
@@ -551,11 +556,19 @@ a {
 	line-height: 30px;
     }
     
-    #options #saveload, #options #custom {
+    #options #custom {
 	top: 0;
 	position: relative;
 	width: 100%;
 	margin: 0px;
+    }
+
+    #saveload {
+	top: 41px;
+	width: 100%;
+	margin: 0px;
+	max-height: calc(100vh - 41px);
+	overflow-y: auto;
     }
 
     #login, #register {

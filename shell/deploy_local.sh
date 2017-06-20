@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cp -ruv ../* /var/www/html/mahjong/
+sudo -u www-data cp -ruv ../* /var/www/html/mahjong/
