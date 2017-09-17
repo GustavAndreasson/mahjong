@@ -92,7 +92,7 @@ class Mahjong {
 
     public function register($name, $password) {
         try {
-            if ($name = "" || $password = "") {
+            if ($name == "" || $password == "") {
                 return false;
             }
             $sql = "SELECT user_id FROM users WHERE name = '$name'";
