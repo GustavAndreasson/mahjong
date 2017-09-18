@@ -59,3 +59,5 @@ Password=Lösenord
 Register new user=Registrera ny användare
 Repeat password=Upprepa lösenord
 Register=Skapa användare
+Logout=Logga ut
+Load game=Ladda spel
