@@ -54,9 +54,8 @@ class Mahjong {
 
     private function create_user() {
         try {
-            $sql = "INSERT INTO users (user_id) ";
-            $sql .= "VALUES (null)";
-            $this->conn->exec($sql);
+            $stmt =  $this->conn->prepare("INSERT INTO users (user_id) VALUES (null)");
+            $stmt->execute(array());
             $this->user_id = $this->conn->lastInsertId();
             $_SESSION["USER_ID"] = $this->user_id;
 
@@ -69,8 +68,9 @@ class Mahjong {
     public function login($name, $password) {
         try {
             $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "SELECT password, user_id, current_game FROM users WHERE name = '$name'";
-            $result = $this->conn->query($sql)->fetch(PDO::FETCH_ASSOC);
+            $stmt = $this->conn->prepare("SELECT password, user_id, current_game FROM users WHERE name = ?");
+            $stmt->execute(array($name));
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($result && password_verify($password, $result['password'])) {
                 $this->delete_user();
                 $this->user_id = $result['user_id'];
@@ -95,12 +95,13 @@ class Mahjong {
             if ($name == "" || $password == "") {
                 return false;
             }
-            $sql = "SELECT user_id FROM users WHERE name = '$name'";
-            $result = $this->conn->query($sql)->fetch(PDO::FETCH_ASSOC);
+            $stmt = $this->conn->prepare("SELECT user_id FROM users WHERE name = ?");
+            $stmt->execute(array($name));
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$result) {
                 $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-                $sql = "UPDATE users SET name = '$name', password = '$pass_hash' WHERE user_id = {$this->user_id}";
-                $this->conn->exec($sql);
+                $stmt = $this->conn->prepare("UPDATE users SET name = ?, password = ? WHERE user_id = ?");
+                $stmt->execute(array($name, $pass_hash, $this->user_id));
                 $this->is_logged_in = true;
                 $_SESSION["IS_LOGGED_IN"] = true; 
                 return true;
@@ -124,8 +125,8 @@ class Mahjong {
     private function delete_user() {
         try {
             $this->delete_game($this->game_id);
-            $sql = "DELETE FROM users WHERE user_id = {$this->user_id}";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("DELETE FROM users WHERE user_id = ?");
+            $stmt->execute(array($this->user_id));
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when deleting user: " . $e->getMessage(), true);
         }   
@@ -138,13 +139,12 @@ class Mahjong {
     private function create_new_game() {
         try {
             $now = date("Y-m-d H:i:s");
-            $sql = "INSERT INTO games (user_id, start_date, last_saved) ";
-            $sql .= "VALUES ('{$this->user_id}', '$now', '$now')";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("INSERT INTO games (user_id, start_date, last_saved) VALUES (?, ?, ?)");
+            $stmt->execute(array($this->user_id, $now, $now));
             $this->game_id = $this->conn->lastInsertId();
             $_SESSION["GAME_ID"] = $this->game_id;
-            $sql = "UPDATE users SET current_game={$this->game_id} WHERE user_id={$this->user_id}";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("UPDATE users SET current_game = ? WHERE user_id = ?");
+            $stmt->execute(array($this->game_id, $this->user_id));
 
             $this->update_settings(); //?
         } catch (PDOException $e) {
@@ -161,8 +161,8 @@ class Mahjong {
     private function game_updated() {
         try {
             $now = date("Y-m-d H:i:s");
-            $sql = "UPDATE games SET last_saved = '$now' WHERE game_id = {$this->game_id}";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("UPDATE games SET last_saved = ? WHERE game_id = ?");
+            $stmt->execute(array($now, $this->game_id));
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when updating timestamp: " . $e->getMessage(), true);
         }
@@ -171,12 +171,15 @@ class Mahjong {
     private function update_settings() {
         try {
             $sql = "INSERT INTO settings (game_id, setting_key, value) VALUES ";
+            $args = array();
             foreach($this->settings as $key=>$value) {
-                $sql .= "({$this->game_id}, '$key', $value),";
+                $sql .= "(?, ?, ?),";
+                array_push($args, $this->game_id, $key, $value);
             }
             $sql = substr($sql, 0, -1);
             $sql .= " ON DUPLICATE KEY UPDATE setting_key=VALUES(setting_key), value=VALUES(value)";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($args);
             $this->game_updated();
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when updating settings: " . $e->getMessage(), true);
@@ -184,9 +187,10 @@ class Mahjong {
     }
     
     private function load_settings() {
-        $sql = "SELECT setting_key, value from settings WHERE game_id = {$this->game_id}";
         try {
-            foreach($this->conn->query($sql) as $row) {
+            $stmt = $this->conn->prepare("SELECT setting_key, value from settings WHERE game_id = ?");
+            $stmt->execute(array($this->game_id));
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $this->settings[$row["setting_key"]] = $row["value"];
             }
         } catch (PDOException $e) {
@@ -197,9 +201,10 @@ class Mahjong {
     public function undo_round() {
         try {
             $sql = "DELETE s1.* FROM scoreboard s1 ";
-            $sql .= "JOIN (SELECT MAX(round) AS max_round FROM scoreboard WHERE game_id = {$this->game_id}) s2 ";
-            $sql .= "WHERE s1.game_id = {$this->game_id} AND s1.round = s2.max_round";
-            $this->conn->exec($sql);
+            $sql .= "JOIN (SELECT MAX(round) AS max_round FROM scoreboard WHERE game_id = ?) s2 ";
+            $sql .= "WHERE s1.game_id = ? AND s1.round = s2.max_round";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(array($this->game_id, $this->game_id));
             $this->game_updated();
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when updating scoreboard: " . $e->getMessage(), true);
@@ -209,9 +214,10 @@ class Mahjong {
     public function update_name($player, $name) {
         try {
             $sql = "INSERT INTO player_names (game_id, player_nr, name) VALUES ";
-            $sql .= "({$this->game_id}, $player, '$name') ";
+            $sql .= "(?, ?, ?) ";
             $sql .= "ON DUPLICATE KEY UPDATE name=VALUES(name)";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(array($this->game_id, $player, $name));
             $this->game_updated();
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when updating player name: " . $e->getMessage(), true);
@@ -231,14 +237,14 @@ class Mahjong {
 
     public function delete_game($id) {
         try {
-            $sql = "DELETE FROM scoreboard WHERE game_id = {$id}";
-            $this->conn->exec($sql);
-            $sql = "DELETE FROM settings WHERE game_id = {$id}";
-            $this->conn->exec($sql);
-            $sql = "DELETE FROM player_names WHERE game_id = {$id}";
-            $this->conn->exec($sql);
-            $sql = "DELETE FROM games WHERE game_id = {$id}";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("DELETE FROM scoreboard WHERE game_id = ?");
+            $stmt->execute(array($id));
+            $stmt = $this->conn->prepare("DELETE FROM settings WHERE game_id = ?");
+            $stmt->execute(array($id));
+            $stmt = $this->conn->prepare("DELETE FROM player_names WHERE game_id = ?");
+            $stmt->execute(array($id));
+            $stmt = $this->conn->prepare("DELETE FROM games WHERE game_id = ?");
+            $stmt->execute(array($id));
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when deleting game: " . $e->getMessage(), true);
         }
@@ -266,10 +272,8 @@ class Mahjong {
     public function load_game($id, $save) {
         try {
             $old_game_id = $this->game_id;
-            $sql = "UPDATE users ";
-            $sql .= "SET current_game = $id ";
-            $sql .= "WHERE user_id = {$this->user_id}";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("UPDATE users SET current_game = ? WHERE user_id = ?");
+            $stmt->execute(array($id, $this->user_id));
             if (!$save || !$this->is_logged_in) {
                 $this->delete_game($old_game_id);
             }
@@ -286,10 +290,12 @@ class Mahjong {
             $sql = "SELECT g.game_id, GROUP_CONCAT(p.name SEPARATOR ',') as names, g.start_date, g.last_saved FROM games g ";
             $sql .= "JOIN settings s ON s.game_id = g.game_id AND s.setting_key = 'no_players' ";
             $sql .= "LEFT JOIN player_names p ON p.game_id = g.game_id AND p.player_nr < s.value ";
-            $sql .= "WHERE user_id = {$this->user_id} ";
+            $sql .= "WHERE user_id = ? ";
             $sql .= "GROUP BY g.game_id ORDER BY g.last_saved DESC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute(array($this->user_id));
             $html = "";
-            foreach($this->conn->query($sql) as $row) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $html .= "<div class='option";
                 if ($row['game_id'] == $this->game_id) {
                     $html .= " disabled";
@@ -309,9 +315,10 @@ class Mahjong {
     public function get_table() {
         $html = "<div class='mjtable'><div class='head'><div>";
         
-        $sql = "SELECT player_nr, name from player_names WHERE game_id = {$this->game_id}"; 
+        $stmt = $this->conn->prepare("SELECT player_nr, name from player_names WHERE game_id = ?");
+        $stmt->execute(array($this->game_id));
         try {
-            $result = $this->conn->query($sql)->fetchAll(PDO::FETCH_UNIQUE);
+            $result = $stmt->fetchAll(PDO::FETCH_UNIQUE);
             for ($i = 0; $i < $this->settings["no_players"]; $i++) {
                 $html .= "<div id='player_" . $i . "' onclick='update_name(";
                 if ($result && key_exists($i, $result)) {
@@ -360,8 +367,9 @@ class Mahjong {
         }
         $html = $this->get_points_row($player_points, $wind_player, $wind);
         try {
-            $sql = "SELECT * FROM scoreboard WHERE game_id = {$this->game_id}";
-            foreach($this->conn->query($sql) as $row) {
+            $stmt = $this->conn->prepare("SELECT * FROM scoreboard WHERE game_id = {$this->game_id}");
+            $stmt->execute(array($this->game_id));
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $round_points = array();
                 for ($i = 0; $i < $this->settings["no_players"]; $i++) {
                     $round_points[] = $row["player" . $i];
@@ -507,20 +515,24 @@ class Mahjong {
 
     public function input_points($points, $mahjong) {
         try {
-            $sql = "SELECT MAX(round) FROM scoreboard WHERE game_id = {$this->game_id}";
-            $round = intval($this->conn->query($sql)->fetchColumn());
+            $stmt = $this->conn->prepare("SELECT MAX(round) FROM scoreboard WHERE game_id = ?");
+            $stmt->execute(array($this->game_id));
+            $round = intval($stmt->fetchColumn());
             $round += 1;
             
-            $values_string = "{$this->game_id}, $round";
+            $values_string = "?, ?";
+            $values = array($this->game_id, $round);
             $columns_string = "game_id, round";
             foreach($points as $id=>$point) {
-                $values_string .= ", $point";
+                $values_string .= ", ?";
+                $values[] = $point;
                 $columns_string .= ", player$id";
             }
-            $values_string .= ", $mahjong";
+            $values_string .= ", ?";
+            $values[] = $mahjong;
             $columns_string .= ", mahjong";
-            $sql = "INSERT INTO scoreboard ($columns_string) VALUES ($values_string)";
-            $this->conn->exec($sql);
+            $stmt = $this->conn->prepare("INSERT INTO scoreboard ($columns_string) VALUES ($values_string)");
+            $stmt->execute($values);
             $this->game_updated();
         } catch (PDOException $e) {
             $this->log_line("Something went wrong when updating scoreboard: " . $e->getMessage(), true);
