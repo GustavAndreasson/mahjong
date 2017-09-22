@@ -24,7 +24,7 @@ if ($mj->is_logged_in()) {
       <?php require_once(TEMPLATES_PATH . "header.php"); ?>
       <div class="main">
         <?php if (!$mj->is_logged_in()) require_once(TEMPLATES_PATH . "login.php"); ?>
-        <?php require_once(TEMPLATES_PATH . "options.php"); ?>
+        <?php require_once(TEMPLATES_PATH . "newgame.php"); ?>
         <?php if ($mj->is_logged_in()) require_once(TEMPLATES_PATH . "load_game.php"); ?>
         <form id="frm_game">
           <div id="table"><?php echo $mj->get_table(); ?></div>

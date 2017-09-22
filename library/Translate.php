@@ -40,6 +40,7 @@ class Translate {
         if (!array_key_exists($this->language, $this->lang)) {
             if (file_exists(TRANSLATIONS_PATH . $this->language.'.txt')) {
                 $strings = array_map(array($this,'splitStrings'),file(TRANSLATIONS_PATH . $this->language.'.txt'));
+                $this->lang[$this->language] = array();
                 foreach ($strings as $k => $v) {
                     $this->lang[$this->language][$v[0]] = $v[1];
                 }
