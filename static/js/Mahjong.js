@@ -54,8 +54,6 @@ $(function() {
     $("#frm_settings").attr("action", "javascript:save_options()");
     $("#btn_restart").click(restart_game);
     $("#btn_custom").click(show_custom_start);
-    $("#btn_cstm_start").click(custom_start);
-    $("#btn_cstm_cancel").click(show_custom_start);
     $("[name='custom_wind']").click(update_custom_wind);
     $("#btn_saveload").click(show_saveload);
     $("#slct_sl").change(save_selected);
@@ -272,12 +270,14 @@ function toggle_popup(puid, close) {
      * @param {boolean} close If true pop-up will only close, not open.
      * @return {boolean} Returns true if pop-up were opened and false if it was closed
      */
-    var popup = document.getElementById(puid);
-    if (popup.className == "pop-up open") {
-	popup.className = "pop-up close";
+    var popup = $("#" + puid);
+    if (popup.hasClass("open")) {
+	popup.removeClass("open");
+        popup.addClass("closed");
 	return false;
     } else if (!close) {
-	popup.className = "pop-up open";
+	popup.removeClass("closed");
+        popup.addClass("open");
 	return true;
     }
 }

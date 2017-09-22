@@ -178,8 +178,6 @@ a {
     margin-top:20px
 }
 
-
-
 .confirm {
     margin-top: 5px;
     float: right;
@@ -189,23 +187,8 @@ a {
     width: 70px;
 }
 
-#custom {
-    width: 300px;
-    margin-left: -150px;
-    margin-top: -100px;
-    z-index: 20;
-}
-
-#custom .settings .setting .opt_options input[type=radio] + label {
+#custom .setting .opt_options input[type=radio] + label {
     font-weight: bold;
-}
-
-#custom .confirm {
-    margin-top: 0px;
-}
-
-#custom .confirm button {
-    width: auto;
 }
 
 #saveload {
