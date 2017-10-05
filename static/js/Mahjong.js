@@ -36,6 +36,7 @@ $(function() {
 	}
     });
     $("#btn_show_options").click(function() {
+	toggle_popup("saveload", true);
 	update_settings();
 	toggle_popup("options");
     });
@@ -52,7 +53,6 @@ $(function() {
     });
     $("[name='points_distribution']").click(update_points_distribution_setting);
     $("#frm_settings").attr("action", "javascript:save_options()");
-    $("#btn_restart").click(restart_game);
     $("#chk_custom").click(show_custom_start);
     $("[name='custom_wind']").click(update_custom_wind);
     $("#btn_saveload").click(show_saveload);
@@ -466,7 +466,7 @@ function show_saveload() {
      * Shows or hides the save/load dialog
      */
     if (toggle_popup("saveload")) {
-	toggle_popup("custom", true);
+	toggle_popup("options", true);
 	load_saves();
 	no_save_selected();
     }
