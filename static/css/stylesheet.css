@@ -29,12 +29,12 @@ input[type=number] {
     -moz-appearance:textfield;
 }
 
-input[type=radio] {
+input[type=radio], input[type=checkbox] {
     position: fixed;
     left: -9999px;
 }
 
-input[type=radio] + label {
+input[type=radio] + label, input[type=checkbox] + label {
     display:inline-block;
     padding: 0px 4px;
     background-color: #e7e7e7;
@@ -42,7 +42,7 @@ input[type=radio] + label {
     cursor: pointer;
 }
 
-input[type=radio]:checked + label {
+input[type=radio]:checked + label, input[type=checkbox]:checked + label {
     background-color:#d0d0d0;
     color: #000000;
 }
@@ -125,7 +125,7 @@ a {
 #options {
     width: 420px;
     margin-left: -210px;
-    margin-top: -146px;
+    margin-top: -232px;
     text-align: left;
     z-index: 10;
 }
@@ -184,7 +184,7 @@ a {
 }
 
 #options .confirm button {
-    width: 70px;
+    min-width: 70px;
 }
 
 #custom .setting .opt_options input[type=radio] + label {
@@ -537,7 +537,8 @@ a {
 	overflow-y: auto;
     }
     
-    #options .settings .setting .opt_options input[type=radio] + label {
+    #options .settings .setting .opt_options input[type=radio] + label,
+    #options .settings .setting .opt_options input[type=checkbox] + label {
 	line-height: 30px;
     }
     

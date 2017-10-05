@@ -53,7 +53,7 @@ $(function() {
     $("[name='points_distribution']").click(update_points_distribution_setting);
     $("#frm_settings").attr("action", "javascript:save_options()");
     $("#btn_restart").click(restart_game);
-    $("#btn_custom").click(show_custom_start);
+    $("#chk_custom").click(show_custom_start);
     $("[name='custom_wind']").click(update_custom_wind);
     $("#btn_saveload").click(show_saveload);
     $("#slct_sl").change(save_selected);
@@ -336,12 +336,34 @@ function save_options() {
 	    settings.fifth_player_pause = opt_fifth_player_pause;
 	    settings.points_distribution = opt_points_distribution;
 	    settings.start_points = opt_start_points;
-	    /*var settings = {
-		'no_players': no_players,
-		'fifth_player_pause': fifth_player_pause,
-		'points_distribution': points_distribution,
-		'start_points': start_points
-	    };*/
+	    if ($("#chk_custom").prop("checked")) {
+		var tmp_no_players = get_radio_value("no_players");
+		var tmp_wind_player = get_radio_value("custom_wind_player");
+		if (tmp_wind_player == 99) {
+		    mj_alert(translate("You have to select a player to have the current wind."));
+		    return;
+		}
+		var tmp_wind = get_radio_value("custom_wind");
+		if (tmp_wind == 99) {
+		    mj_alert(translate("You have to select the current wind."));
+		    return;
+		}
+		var tmp_points = [];
+		for (var i = 0; i < tmp_no_players; i++) {
+		    tmp_points[i] = $("#custom_start_pl" + (i + 1)).val();
+		    if (isNaN(tmp_points[i]) || tmp_points[i] % 1 != 0) {
+			mj_alert(translate("You have to enter player points as numbers."));
+			return;
+		    }
+		}
+		wind = tmp_wind;
+		settings.start_wind = wind;
+		settings.start_wind_player = tmp_wind_player - 1;
+		for (var i=0; i < no_players; i++) {
+		    settings["start_player" + i] = tmp_points[i];
+		}
+		$("#chk_custom").prop("checked", false);
+	    }
 	    $("#table").load("library/settings_controller.php", {action: "set_settings", settings: JSON.stringify(settings), save: true});
 	    round = 0;
 	    toggle_popup("options");
@@ -361,7 +383,8 @@ function show_custom_start() {
     /**
      * Shows or hides the custom start dialog
      */
-    if (toggle_popup("custom")) {
+    $("#custom").toggle();
+    if ($("#chk_custom").prop("checked")) {
 	toggle_popup("saveload", true);
 	var custom_winds = "";
 	var tmp_no_players = get_radio_value("no_players");

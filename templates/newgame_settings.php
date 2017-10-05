@@ -43,9 +43,13 @@
 	        <input type="number" step="1" id="start_points" value="2000">
 	    </span>
 	</div>
+	<div class="setting">
+	    <span class="opt_options">
+		<input type="checkbox" name="chk_custom" value="1" id="chk_custom"><label for="chk_custom"><?= $T->__("Start custom game") ?></label>
+	    </span>
+	</div>
         <?php require_once(TEMPLATES_PATH . "newgame_custom.php"); ?>
         <div class="confirm">
-            <button type="button" id="btn_custom"><?= $T->__("Start custom game") ?></button>
             <button type="button" id="btn_opt_cancel"><?= $T->__("Cancel") ?></button>
             <button type="submit" id="opt_ok"><?= $T->__("Start game") ?></button>
         </div>

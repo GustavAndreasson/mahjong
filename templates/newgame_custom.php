@@ -1,4 +1,4 @@
-<div id="custom" class="closed">
+<div id="custom" style="display:none">
     <div class="setting" id="custom_pl1">
         <span class="opt_title"><?= $T->__("Points player 1") ?></span>
 	<span class="opt_options">
